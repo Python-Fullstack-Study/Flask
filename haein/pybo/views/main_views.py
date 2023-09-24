@@ -1,6 +1,10 @@
-from flask import Blueprint
+from flask import Blueprint, render_template , url_for
+from werkzeug.utils import redirect
 
-bp = Blueprint('main', __name__, url_prefix='/')
+from pybo.models import Question
+
+bp = Blueprint('question', __name__, url_prefix='/question')
+
 
 
 @bp.route('/hello')
@@ -10,4 +14,10 @@ def hello_pybo():
 
 @bp.route('/')
 def index():
-    return 'Pybo index'
+    return redirect(url_for('question._list'))
+
+@bp.route('/list/')
+def _list():
+    question_list = Question.query.order_by(Question.create_date.desc())
+    
+    return render_template('question/question_list.html', question_list=question_lis)
