@@ -2,10 +2,11 @@ from flask import Flask
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
-import chanyang.week1.ch2.config as config
+import config
 
 db = SQLAlchemy()
 migrate = Migrate()
+from . import models
 
 def create_app():
     app = Flask(__name__)
@@ -16,7 +17,9 @@ def create_app():
     migrate.init_app(app, db)
 
     # Blueprint
-    from .views import main_view
+    from .views import main_view, question_views, answer_views
     app.register_blueprint(main_view.bp)
+    app.register_blueprint(question_views.bp)
+    app.register_blueprint(answer_views.bp)
 
     return app
