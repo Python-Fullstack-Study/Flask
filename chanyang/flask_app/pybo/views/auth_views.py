@@ -6,6 +6,8 @@ from pybo import db
 from pybo.forms import UserCreateForm, UserLoginForm
 from pybo.models import User
 
+import functools
+
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 @bp.before_app_request
@@ -43,6 +45,11 @@ def login():
         if error is None:
             session.clear()
             session['user_id'] = user.id
+            _next = request.args.get('next', '')
+            if _next:
+                return redirect(_next)
+            else:
+                return redirect(url_for('main.index'))
             return redirect(url_for('main.index'))
         flash(error)
     return render_template('auth/login.html', form=form)
@@ -52,3 +59,11 @@ def logout():
     session.clear()
     return redirect(url_for('main.index'))
 
+def login_required(view):
+    @functools.wraps(view)
+    def wrapped_view(*args, **kwargs):
+        if g.user is None:
+            _next = request.url if request.method == 'GET' else ''
+            return redirect(url_for('auth.login', next=_next))
+        return view(*args, **kwargs)
+    return wrapped_view
