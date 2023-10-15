@@ -1,12 +1,20 @@
-from flask import Blueprint, url_for, render_template, flash, request, session
+from flask import Blueprint, url_for, render_template, flash, request, session, g
 from werkzeug.utils import redirect
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from pybo import db
-from pybo.forms import UserCreateForm
+from pybo.forms import UserCreateForm, UserLoginForm
 from pybo.models import User
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
+
+@bp.before_app_request
+def load_logged_in_user():
+    user_id = session.get('user_id')
+    if user_id is None:
+        g.user = None
+    else:
+        g.user = User.query.get(user_id)
 
 @bp.route('/signup/', methods=('GET', 'POST'))
 def signup():
@@ -38,3 +46,9 @@ def login():
             return redirect(url_for('main.index'))
         flash(error)
     return render_template('auth/login.html', form=form)
+
+@bp.route('/logout/')
+def logout():
+    session.clear()
+    return redirect(url_for('main.index'))
+
